@@ -1,0 +1,35 @@
+name: Histórico simulado
+
+# Refaz o backtest de 1 ano todo dia (e sempre que o config.json mudar).
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  push:
+    paths: ["config.json", "bot/historico.py", "bot/analise.py", "bot/grid.py"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: historico
+  cancel-in-progress: true
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rodar histórico
+        run: python bot/historico.py
+      - name: Salvar
+        run: |
+          git config user.name "grid-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/historico.json
+          git commit -q -m "Histórico: backtest atualizado" || exit 0
+          for i in 1 2 3 4 5; do git pull -q --rebase && git push -q && break; sleep $((i*3)); done

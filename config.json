@@ -1,0 +1,24 @@
+{
+  "saldo_inicial_usd": 20,
+  "taxa_pct": 0.1,
+  "sessao": 1,
+  "ao_vivo": {
+    "linhas": 6,
+    "faixa_abaixo_pct": 20,
+    "faixa_acima_pct": 20,
+    "tipo": "geometrico",
+    "recentrar_apos_horas": 48,
+    "preco_min": null,
+    "preco_max": null
+  },
+  "historico": {
+    "dias": 365,
+    "linhas": 8,
+    "faixa_abaixo_pct": 20,
+    "faixa_acima_pct": 20,
+    "tipo": "geometrico",
+    "recentrar_apos_horas": 12,
+    "preco_min": null,
+    "preco_max": null
+  }
+}

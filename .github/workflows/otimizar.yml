@@ -3,8 +3,6 @@ name: Otimizar configuração
 # Testa várias combinações de linhas/faixa com 1 ano de histórico real da SOL.
 on:
   workflow_dispatch:
-  push:
-    paths: ["bot/otimizar.py", "bot/grid.py", ".github/workflows/otimizar.yml"]
 
 permissions:
   contents: write
