@@ -4,9 +4,9 @@ name: Bot ao vivo
 # o agendamento; não tem problema, o bot processa todos os minutos que ficaram para trás.
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "3-59/10 * * * *"
   push:
-    paths: ["config.json"]
+    paths: ["config.json", ".github/workflows/bot.yml"]
   workflow_dispatch:
 
 permissions:
