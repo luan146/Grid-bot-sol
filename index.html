@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid SOL — bot simulado</title>
+<meta name="description" content="Grid bot de Solana rodando 24h com dinheiro de mentira.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F2740'/%3E%3Cpath d='M6 9h20M6 16h20M6 23h20' stroke='%23A9C2DC' stroke-width='1.6'/%3E%3Cpath d='M6 24l6-9 5 5 9-12' stroke='%232E9FD6' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+  try { const t = localStorage.getItem("tema"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<div class="casca">
+  <header class="topo">
+    <div class="marca">
+      <h1>Grid <span>SOL</span></h1>
+      <span class="selo" id="selo" data-s=""><i></i><span id="selo-txt">carregando…</span></span>
+    </div>
+    <nav class="abas" role="tablist" aria-label="Seções">
+      <button role="tab" id="tab-vivo" aria-controls="vivo" aria-selected="true">Ao vivo</button>
+      <button role="tab" id="tab-hist" aria-controls="hist" aria-selected="false">Histórico</button>
+      <button role="tab" id="tab-cfg" aria-controls="cfg" aria-selected="false">Configurar</button>
+    </nav>
+    <button class="tema" id="tema" aria-label="Trocar tema claro/escuro" title="Trocar tema"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  </header>
+
+  <!-- ================= AO VIVO ================= -->
+  <main id="vivo" role="tabpanel" aria-labelledby="tab-vivo">
+    <section class="heroi">
+      <div class="painel numero-heroi">
+        <div>
+          <p class="rotulo" id="h-rotulo">Seu saldo simulado</p>
+          <p class="valor-grande" id="h-valor"><small>US$</small>—</p>
+          <div class="delta" id="h-delta"></div>
+        </div>
+        <div class="aloc" id="h-aloc"></div>
+        <dl class="comparacao">
+          <div><dt><span class="chave" style="color:var(--hodl)"></span>Se só tivesse comprado SOL</dt><dd id="h-hodl">—</dd></div>
+          <div><dt>Lucro das idas e voltas</dt><dd id="h-grid">—</dd></div>
+        </dl>
+      </div>
+      <div class="painel escada-box">
+        <h2>A escada do grid <small id="esc-faixa"></small></h2>
+        <p class="sub" id="esc-sub">Cada degrau é uma ordem esperando o preço chegar.</p>
+        <div id="escada"></div>
+      </div>
+    </section>
+
+    <dl class="nums" id="nums"></dl>
+
+    <section class="painel mt">
+      <h2>Preço da SOL e as operações</h2>
+      <p class="sub">Velas de 15 minutos. Linhas tracejadas são os degraus do grid; <span class="mark-c">▲</span> compra, <span class="mark-v">▼</span> venda.</p>
+      <div class="leitura" id="leit-preco"></div>
+      <div class="grafico" id="g-preco"></div>
+    </section>
+
+    <section class="painel mt">
+      <h2>Seu dinheiro desde que o bot ligou</h2>
+      <div class="legenda"><span><span class="chave" style="color:var(--bot)"></span>Bot</span><span><span class="chave trac" style="color:var(--hodl)"></span>Só segurar SOL</span></div>
+      <div class="leitura" id="leit-eq"></div>
+      <div class="grafico baixo" id="g-eq"></div>
+    </section>
+
+    <section class="painel mt">
+      <h2>Operações</h2>
+      <p class="sub">Toda compra e venda simulada, da mais recente pra mais antiga. Já com a taxa de 0,1% da corretora.</p>
+      <div id="trades"></div>
+    </section>
+  </main>
+
+  <!-- ================= HISTÓRICO ================= -->
+  <main id="hist" role="tabpanel" aria-labelledby="tab-hist" hidden>
+    <section class="painel">
+      <p class="veredito" id="hist-veredito">Carregando o histórico…</p>
+      <div class="duas">
+        <div>
+          <h2>E se você ligasse o bot num dia qualquer e esperasse 30 dias?</h2>
+          <p class="sub" id="hist-jan-sub"></p>
+          <div class="histo" id="histo"></div>
+          <div class="histo-eixo" id="histo-eixo"></div>
+          <dl class="fatos" id="fatos-jan"></dl>
+        </div>
+        <div>
+          <h2>Um ano inteiro sem desligar</h2>
+          <p class="sub" id="hist-ano-sub"></p>
+          <dl class="fatos" id="fatos-ano"></dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="painel mt">
+      <h2>Seu dinheiro no último ano</h2>
+      <div class="legenda"><span><span class="chave" style="color:var(--bot)"></span>Bot (config do histórico)</span><span><span class="chave trac" style="color:var(--hodl)"></span>Só segurar SOL</span><span>● grid recentrado</span></div>
+      <div class="leitura" id="leit-hist"></div>
+      <div class="grafico" id="g-hist"></div>
+    </section>
+
+    <section class="painel mt">
+      <h2>Mês a mês</h2>
+      <p class="sub">Resultado de cada mês do bot comparado com a própria SOL. Barra pra direita é ganho, pra esquerda é perda.</p>
+      <div class="mes-cab"><span></span><span>Bot</span><span>SOL</span></div>
+      <div class="meses" id="meses"></div>
+    </section>
+  </main>
+
+  <!-- ================= CONFIGURAR ================= -->
+  <main id="cfg" role="tabpanel" aria-labelledby="tab-cfg" hidden>
+    <section class="cfg">
+      <div class="painel">
+        <h2>Ajuste o bot</h2>
+        <p class="sub">Mexa nos controles e veja a escada mudar. Quando gostar, copie a configuração e salve no GitHub. O bot aplica sozinho na rodada seguinte.</p>
+        <div class="campo">
+          <label for="c-modo">O que você está configurando</label>
+          <div class="escolha" id="c-modo">
+            <button type="button" data-v="ao_vivo" aria-pressed="true">Bot ao vivo</button>
+            <button type="button" data-v="historico" aria-pressed="false">Histórico</button>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="c-linhas">Quantidade de degraus <output id="o-linhas"></output></label>
+          <input type="range" id="c-linhas" min="2" max="40" step="1">
+          <p>Mais degraus = operações menores e mais frequentes, mas cada uma lucra menos.</p>
+        </div>
+        <div class="campo">
+          <label for="c-abaixo">Faixa abaixo do preço <output id="o-abaixo"></output></label>
+          <input type="range" id="c-abaixo" min="3" max="60" step="1">
+          <p>Até onde o bot continua comprando se a SOL cair.</p>
+        </div>
+        <div class="campo">
+          <label for="c-acima">Faixa acima do preço <output id="o-acima"></output></label>
+          <input type="range" id="c-acima" min="3" max="60" step="1">
+          <p>Até onde o bot continua vendendo se a SOL subir.</p>
+        </div>
+        <div class="campo">
+          <label for="c-rec">Recentrar depois de <output id="o-rec"></output></label>
+          <input type="range" id="c-rec" min="0" max="168" step="6">
+          <p>Se o preço ficar fora da faixa esse tempo todo, o bot remonta a escada em volta do preço novo. Zero = nunca.</p>
+        </div>
+        <div class="campo" id="campo-saldo">
+          <label for="c-saldo">Saldo inicial <output id="o-saldo"></output></label>
+          <input type="range" id="c-saldo" min="10" max="1000" step="5">
+          <p>Mudar o saldo reinicia o bot do zero.</p>
+        </div>
+      </div>
+
+      <div class="painel">
+        <h2>Como fica</h2>
+        <dl class="calc" id="calc"></dl>
+        <div id="cfg-alertas"></div>
+        <div id="cfg-escada"></div>
+        <h2 class="mt">Salvar no GitHub</h2>
+        <p class="sub">Clique em copiar, abra o arquivo no GitHub, apague tudo, cole e clique em <b>Commit changes</b>.</p>
+        <pre class="json" id="cfg-json"></pre>
+        <div class="botoes">
+          <button class="btn" id="btn-copiar" type="button">Copiar configuração</button>
+          <a class="btn sec" id="btn-github" target="_blank" rel="noopener">Abrir config.json no GitHub</a>
+          <button class="btn sec" id="btn-reset" type="button">Voltar ao recomendado</button>
+        </div>
+        <p class="sub" id="copiado" aria-live="polite" style="margin-top:12px"></p>
+      </div>
+    </section>
+
+    <section class="painel mt">
+      <h2>Tutorial: como escolher cada coisa</h2>
+      <p class="sub">Um grid bot não adivinha pra onde o preço vai. Ele lucra com o vai-e-vem dentro de uma faixa. Configurar é decidir o tamanho dessa faixa e de cada degrau.</p>
+      <ol class="passos">
+        <li><div><h3>Escolha a faixa olhando quanto a SOL costuma oscilar</h3>
+          <p>No último ano, a diferença entre o preço mais alto e o mais baixo da SOL dentro de um mesmo mês ficou entre 15% e 50%, quase sempre perto de 30%. Uma faixa de ±20% cobre a maior parte disso sem ficar larga demais. Faixa estreita (±8%) opera mais, mas o preço escapa dela rápido. Faixa muito larga (±40%) quase nunca escapa, mas o dinheiro fica parado e cada degrau rende pouco.</p></div></li>
+        <li><div><h3>Escolha os degraus pelo espaço entre eles</h3>
+          <p>O número que importa é o <b>espaço entre degraus</b> (aparece em "Como fica"). Cada ida e volta paga 0,2% de taxa (0,1% na compra e 0,1% na venda), então o espaço precisa ser bem maior que isso. Entre 3% e 7% foi o que funcionou melhor na SOL. Abaixo de 1%, a taxa come quase todo o lucro.</p></div></li>
+        <li><div><h3>Confira o valor de cada ordem</h3>
+          <p>Seu saldo é dividido entre os degraus. Com US$ 20 e 6 degraus, cada ordem tem ~US$ 3,30. Aqui na simulação funciona, mas na Binance de verdade a ordem mínima é ~US$ 5. Pra usar essa mesma configuração com dinheiro real, você precisaria de uns US$ 35 ou mais.</p></div></li>
+        <li><div><h3>Decida o que fazer se o preço escapar</h3>
+          <p>Se a SOL cair abaixo da faixa, o bot fica segurando SOL desvalorizada; se subir acima, fica todo em dólar e perde a alta. Recentrar faz o bot "seguir" o preço: no histórico, recentrar depois de 12 a 48 horas fora diminuiu bastante as perdas nos meses de queda forte.</p></div></li>
+        <li><div><h3>Salve e deixe rodar</h3>
+          <p>Mudou degraus, faixa ou recentrar? O bot remonta a escada com o dinheiro que tem agora, sem perder o histórico. Quer começar do zero com US$ 20 de novo? No <code>config.json</code>, troque <code>"sessao": 1</code> por <code>2</code>.</p></div></li>
+      </ol>
+      <p class="sub" id="tut-recomendado" style="margin-top:20px"></p>
+    </section>
+  </main>
+
+  <p class="rodape">Tudo aqui é simulação com dinheiro de mentira, usando o preço real da SOL (Coinbase). Resultado passado não garante resultado futuro, e isso não é recomendação de investimento.
+    O bot roda no GitHub Actions a cada ~10 minutos; o GitHub às vezes atrasa, mas o bot recupera cada minuto perdido. <span id="rodape-fonte"></span></p>
+</div>
+<div class="dica" id="dica" role="tooltip"></div>
+
+<script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
