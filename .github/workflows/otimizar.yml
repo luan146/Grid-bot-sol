@@ -1,0 +1,33 @@
+name: Otimizar configuração
+
+# Testa várias combinações de linhas/faixa com 1 ano de histórico real da SOL.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["bot/otimizar.py", "bot/grid.py", ".github/workflows/otimizar.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: escrita-no-repo
+  cancel-in-progress: false
+
+jobs:
+  otimizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rodar otimização
+        run: python bot/otimizar.py
+      - name: Salvar resultado
+        run: |
+          git config user.name "grid-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/otimizacao.json
+          git commit -m "Otimização: ranking de configurações" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase && git push && break; sleep 5; done
