@@ -1,36 +1,71 @@
 name: Bot ao vivo
 
-# Roda o grid (dinheiro de mentira) a cada ~10 minutos. O GitHub às vezes atrasa
-# o agendamento; não tem problema, o bot processa todos os minutos que ficaram para trás.
+# Como o agendamento (cron) do GitHub pode atrasar horas ou nem disparar em repositórios novos,
+# o bot roda num "laço": uma execução fica ligada ~5h30, rodando a cada 10 minutos,
+# e no fim chama a próxima. O cron só serve de vigia: se não houver laço ativo, ele religa.
 on:
   schedule:
     - cron: "3-59/10 * * * *"
   push:
-    paths: ["config.json", ".github/workflows/bot.yml"]
+    paths: ["config.json", ".github/workflows/bot.yml", "bot/ao_vivo.py", "bot/grid.py"]
   workflow_dispatch:
 
 permissions:
   contents: write
-
-concurrency:
-  group: bot-ao-vivo
-  cancel-in-progress: false
+  actions: write
 
 jobs:
-  rodar:
+  vigia:
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
+    steps:
+      - name: Religar o laço se ele parou
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ativos=$(gh run list -R "$GITHUB_REPOSITORY" --workflow bot.yml --limit 30 --json status,event \
+            -q '[.[] | select(.event != "schedule" and .status != "completed")] | length')
+          echo "laços ativos: $ativos"
+          if [ "$ativos" = "0" ]; then gh workflow run bot.yml -R "$GITHUB_REPOSITORY"; fi
+
+  rodar:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    concurrency:
+      group: bot-laco
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Rodar o bot
-        run: python bot/ao_vivo.py
-      - name: Salvar estado
+      - name: Rodar o bot a cada 10 minutos (~5h30)
         run: |
           git config user.name "grid-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/estado.json
-          git commit -q -m "Bot: rodada $(date -u +%Y-%m-%dT%H:%MZ)" || exit 0
-          for i in 1 2 3 4 5; do git pull -q --rebase && git push -q && break; sleep $((i*3)); done
+          salvar() {
+            git add "$@"
+            git commit -q -m "$MSG" || return 0
+            for i in 1 2 3 4 5; do git pull -q --rebase && git push -q && return 0; sleep $((i*3)); done
+          }
+          fim=$(( $(date +%s) + 330*60 ))
+          while :; do
+            git pull -q --rebase || true
+            python bot/ao_vivo.py || echo "rodada falhou, tento de novo na próxima"
+            MSG="Bot: rodada $(date -u +%Y-%m-%dT%H:%MZ)" salvar data/estado.json
+            # histórico do último ano: refaz 1x por dia
+            if python -c "import json,time,sys; d=json.load(open('data/historico.json')); sys.exit(0 if time.time()-d['gerado_em']>86400 else 1)" 2>/dev/null; then
+              python bot/historico.py && MSG="Histórico: backtest atualizado" salvar data/historico.json
+            fi
+            agora=$(date +%s)
+            [ "$agora" -ge "$fim" ] && break
+            espera=$(( fim - agora < 600 ? fim - agora : 600 ))
+            sleep "$espera"
+          done
+      - name: Chamar a próxima execução
+        if: success() || failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run bot.yml -R "$GITHUB_REPOSITORY"
